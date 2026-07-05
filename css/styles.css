@@ -96,6 +96,8 @@ h2 { font-size: 16px; font-weight: 800; color: var(--ink); }
 
 .sidebar-foot { border-top: 1px solid var(--line); padding-top: 14px; }
 .user-card { display: flex; align-items: center; gap: 10px; padding: 6px; }
+.user-card-info { min-width: 0; flex: 1; }
+#btnLogout { flex-shrink: 0; font-size: 15px; }
 .avatar {
   width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
   background: var(--green-100); color: var(--green-700);
@@ -304,6 +306,29 @@ tr:hover .row-actions { opacity: 1; }
 }
 .toast.err { background: var(--red); }
 @keyframes toastIn { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+/* ---------- Login ---------- */
+.login {
+  position: fixed; inset: 0; z-index: 300;
+  display: grid; place-items: center; padding: 20px;
+  background: linear-gradient(135deg, var(--green-700), var(--green-900));
+}
+.login-card {
+  background: #fff; width: 100%; max-width: 380px;
+  border-radius: 20px; padding: 32px 28px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.login-brand { display: flex; align-items: center; gap: 10px; justify-content: center; }
+.login-brand .brand-name { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
+.login-brand .brand-name strong { color: var(--green-600); }
+.login-sub { text-align: center; color: var(--muted); font-size: 13.5px; margin-bottom: 8px; }
+.login-card .field { gap: 6px; }
+.login-btn { justify-content: center; padding: 12px; margin-top: 6px; font-size: 15px; }
+.login-err {
+  background: var(--red-bg); color: var(--red); font-size: 13px; font-weight: 700;
+  padding: 9px 12px; border-radius: 10px; text-align: center;
+}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1000px) {

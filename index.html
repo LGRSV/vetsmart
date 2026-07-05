@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VetSmart — Controle de Medicamentos</title>
-  <meta name="description" content="Sistema de controle de medicamentos para hospital veterinário." />
+  <title>Hospital Med Vet — Controle de Medicamentos</title>
+  <meta name="description" content="Sistema de controle de medicamentos do Hospital Med Vet." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap" rel="stylesheet" />
@@ -12,12 +12,33 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" />
 </head>
 <body>
-  <div class="app">
+  <!-- Tela de login -->
+  <div class="login" id="loginScreen" hidden>
+    <form class="login-card" id="loginForm">
+      <div class="login-brand">
+        <span class="brand-mark">🐾</span>
+        <span class="brand-name">Hospital <strong>Med&nbsp;Vet</strong></span>
+      </div>
+      <p class="login-sub">Controle de medicamentos • acesso restrito</p>
+      <label class="field">
+        <span>Usuário</span>
+        <input type="text" id="l-user" autocomplete="username" placeholder="usuário" required />
+      </label>
+      <label class="field">
+        <span>Senha</span>
+        <input type="password" id="l-pass" autocomplete="current-password" placeholder="••••••••" required />
+      </label>
+      <div class="login-err" id="loginErr" hidden>Usuário ou senha inválidos.</div>
+      <button type="submit" class="btn btn-primary login-btn">Entrar</button>
+    </form>
+  </div>
+
+  <div class="app" id="appRoot" hidden>
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <span class="brand-mark">🐾</span>
-        <span class="brand-name">Vet<strong>Smart</strong></span>
+        <span class="brand-name">Hospital <strong>Med&nbsp;Vet</strong></span>
       </div>
       <nav class="nav">
         <button class="nav-item active" data-view="dashboard">
@@ -36,11 +57,12 @@
       </nav>
       <div class="sidebar-foot">
         <div class="user-card">
-          <div class="avatar">HV</div>
-          <div>
-            <div class="user-name">Hospital Veterinário</div>
+          <div class="avatar">MV</div>
+          <div class="user-card-info">
+            <div class="user-name">Hospital Med Vet</div>
             <div class="user-role">Farmácia central</div>
           </div>
+          <button class="icon-btn" id="btnLogout" title="Sair">⏻</button>
         </div>
       </div>
     </aside>

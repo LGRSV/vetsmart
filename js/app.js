@@ -5,6 +5,14 @@
 
 const STORAGE_KEY = 'vetsmart:meds:v1';
 const MOVES_KEY = 'vetsmart:moves:v1';
+const AUTH_KEY = 'vetsmart:auth:v1';
+
+/* ---------- Credenciais de acesso ----------
+   Para trocar o usuário/senha, edite os dois valores abaixo.
+   Observação: por ser um site estático (sem servidor), esta é uma
+   proteção básica — não guarde aqui senhas realmente sensíveis. */
+const LOGIN_USUARIO = 'admin';
+const LOGIN_SENHA = 'medvet2026';
 
 /* ---------- Estado ---------- */
 let meds = [];
@@ -436,6 +444,45 @@ function toast(msg, isErr) {
   toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
 }
 
+/* ---------- Autenticação ---------- */
+function isAuthed() {
+  return sessionStorage.getItem(AUTH_KEY) === '1';
+}
+
+function enterApp() {
+  $('#loginScreen').hidden = true;
+  $('#appRoot').hidden = false;
+  renderAll();
+}
+
+function showLogin() {
+  $('#appRoot').hidden = true;
+  $('#loginScreen').hidden = false;
+  $('#loginErr').hidden = true;
+  $('#loginForm').reset();
+  setTimeout(() => $('#l-user').focus(), 50);
+}
+
+function doLogin(e) {
+  e.preventDefault();
+  const u = $('#l-user').value.trim();
+  const s = $('#l-pass').value;
+  if (u === LOGIN_USUARIO && s === LOGIN_SENHA) {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    enterApp();
+    toast('Bem-vindo(a) ao Hospital Med Vet!');
+  } else {
+    $('#loginErr').hidden = false;
+    $('#l-pass').value = '';
+    $('#l-pass').focus();
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem(AUTH_KEY);
+  showLogin();
+}
+
 function switchView(view) {
   $$('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
   $$('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.view === view));
@@ -448,7 +495,11 @@ function switchView(view) {
    ============================================================ */
 function init() {
   load();
-  renderAll();
+
+  // Login / logout
+  $('#loginForm').addEventListener('submit', doLogin);
+  $('#btnLogout').addEventListener('click', logout);
+  if (isAuthed()) enterApp(); else showLogin();
 
   // Navegação (delegação para nav + botões "ver todos")
   document.addEventListener('click', (e) => {

@@ -1,8 +1,18 @@
-# 🐾 VetSmart — Controle de Medicamentos
+# 🐾 Hospital Med Vet — Controle de Medicamentos
 
-Sistema web para **controle de medicamentos de um hospital veterinário**, com visual
-inspirado na identidade da [VetSmart](https://vetsmart.com.br) (verde vibrante, layout
-clean estilo SaaS, cantos arredondados).
+Sistema web para **controle de medicamentos do Hospital Med Vet**, com visual
+verde vibrante, layout clean estilo SaaS e cantos arredondados.
+
+## 🔐 Acesso
+
+A aplicação abre em uma tela de login. Credenciais padrão:
+
+- **Usuário:** `admin`
+- **Senha:** `medvet2026`
+
+> Para trocar, edite as constantes `LOGIN_USUARIO` e `LOGIN_SENHA` no início de
+> `js/app.js`. Por ser um site estático (sem servidor), este login é uma proteção
+> básica de acesso — não substitui autenticação real com backend.
 
 Aplicação **100% front-end** (HTML + CSS + JavaScript puro), sem build e sem dependências.
 Os dados são salvos no `localStorage` do navegador.
