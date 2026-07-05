@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetSmart — Controle de Medicamentos</title>
+  <meta name="description" content="Sistema de controle de medicamentos para hospital veterinário." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-mark">🐾</span>
+        <span class="brand-name">Vet<strong>Smart</strong></span>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="dashboard">
+          <span class="nav-ico">▚</span> Dashboard
+        </button>
+        <button class="nav-item" data-view="medicamentos">
+          <span class="nav-ico">💊</span> Medicamentos
+        </button>
+        <button class="nav-item" data-view="movimentacoes">
+          <span class="nav-ico">⇅</span> Movimentações
+        </button>
+        <button class="nav-item" data-view="alertas">
+          <span class="nav-ico">🔔</span> Alertas
+          <span class="nav-badge" id="navAlertBadge" hidden>0</span>
+        </button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="user-card">
+          <div class="avatar">HV</div>
+          <div>
+            <div class="user-name">Hospital Veterinário</div>
+            <div class="user-role">Farmácia central</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+        <div class="search-box">
+          <span class="search-ico">🔎</span>
+          <input type="search" id="globalSearch" placeholder="Buscar medicamento, princípio ativo, lote..." />
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" id="btnExport" title="Exportar dados (JSON)">⬇ Exportar</button>
+          <button class="btn btn-primary" id="btnNovoMed">＋ Novo medicamento</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- DASHBOARD -->
+        <section class="view" id="view-dashboard">
+          <div class="view-head">
+            <div>
+              <h1>Dashboard</h1>
+              <p class="muted">Visão geral do estoque da farmácia veterinária.</p>
+            </div>
+          </div>
+
+          <div class="stats" id="statsGrid"></div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head">
+                <h2>Estoque por categoria</h2>
+              </div>
+              <div class="card-body" id="catChart"></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <h2>Precisam de atenção</h2>
+                <button class="link" data-view="alertas">Ver todos</button>
+              </div>
+              <div class="card-body" id="attentionList"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2>Movimentações recentes</h2>
+              <button class="link" data-view="movimentacoes">Ver histórico</button>
+            </div>
+            <div class="card-body no-pad" id="recentMoves"></div>
+          </div>
+        </section>
+
+        <!-- MEDICAMENTOS -->
+        <section class="view" id="view-medicamentos" hidden>
+          <div class="view-head">
+            <div>
+              <h1>Medicamentos</h1>
+              <p class="muted">Cadastro e estoque de medicamentos.</p>
+            </div>
+            <button class="btn btn-primary" id="btnNovoMed2">＋ Novo medicamento</button>
+          </div>
+
+          <div class="toolbar">
+            <div class="filters">
+              <select id="filterCategoria"><option value="">Todas as categorias</option></select>
+              <select id="filterStatus">
+                <option value="">Todos os status</option>
+                <option value="ok">Em estoque</option>
+                <option value="baixo">Estoque baixo</option>
+                <option value="zerado">Sem estoque</option>
+                <option value="vencendo">Vencendo (30d)</option>
+                <option value="vencido">Vencido</option>
+              </select>
+            </div>
+            <div class="table-search">
+              <span class="search-ico">🔎</span>
+              <input type="search" id="tableSearch" placeholder="Filtrar tabela..." />
+            </div>
+          </div>
+
+          <div class="card no-pad">
+            <div class="table-wrap">
+              <table class="table" id="medTable">
+                <thead>
+                  <tr>
+                    <th data-sort="nome">Medicamento</th>
+                    <th data-sort="categoria">Categoria</th>
+                    <th data-sort="lote">Lote</th>
+                    <th data-sort="quantidade" class="num">Qtd.</th>
+                    <th data-sort="validade">Validade</th>
+                    <th data-sort="preco" class="num">Preço un.</th>
+                    <th>Status</th>
+                    <th class="actions-col"></th>
+                  </tr>
+                </thead>
+                <tbody id="medTbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="medEmpty" hidden>
+              <div class="empty-emoji">💊</div>
+              <p>Nenhum medicamento encontrado.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- MOVIMENTAÇÕES -->
+        <section class="view" id="view-movimentacoes" hidden>
+          <div class="view-head">
+            <div>
+              <h1>Movimentações</h1>
+              <p class="muted">Histórico de entradas e saídas de estoque.</p>
+            </div>
+          </div>
+          <div class="card no-pad">
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Medicamento</th>
+                    <th>Tipo</th>
+                    <th class="num">Qtd.</th>
+                    <th>Responsável / Motivo</th>
+                  </tr>
+                </thead>
+                <tbody id="movesTbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="movesEmpty" hidden>
+              <div class="empty-emoji">⇅</div>
+              <p>Nenhuma movimentação registrada ainda.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ALERTAS -->
+        <section class="view" id="view-alertas" hidden>
+          <div class="view-head">
+            <div>
+              <h1>Alertas</h1>
+              <p class="muted">Itens que exigem reposição ou atenção com a validade.</p>
+            </div>
+          </div>
+          <div id="alertsContainer"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: novo/editar medicamento -->
+  <div class="modal-backdrop" id="medModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <h2 id="medModalTitle">Novo medicamento</h2>
+        <button class="icon-btn" id="medModalClose" aria-label="Fechar">✕</button>
+      </div>
+      <form id="medForm" class="modal-body">
+        <input type="hidden" id="f-id" />
+        <div class="form-row">
+          <label class="field span-2">
+            <span>Nome do medicamento *</span>
+            <input type="text" id="f-nome" required placeholder="Ex.: Amoxicilina 250mg" />
+          </label>
+          <label class="field">
+            <span>Princípio ativo</span>
+            <input type="text" id="f-principio" placeholder="Ex.: Amoxicilina" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="field">
+            <span>Categoria *</span>
+            <input list="catList" id="f-categoria" required placeholder="Ex.: Antibiótico" />
+            <datalist id="catList"></datalist>
+          </label>
+          <label class="field">
+            <span>Fabricante</span>
+            <input type="text" id="f-fabricante" placeholder="Ex.: Zoetis" />
+          </label>
+          <label class="field">
+            <span>Lote</span>
+            <input type="text" id="f-lote" placeholder="Ex.: LT-2045" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="field">
+            <span>Quantidade *</span>
+            <input type="number" id="f-quantidade" min="0" step="1" required placeholder="0" />
+          </label>
+          <label class="field">
+            <span>Estoque mínimo</span>
+            <input type="number" id="f-minimo" min="0" step="1" placeholder="10" />
+          </label>
+          <label class="field">
+            <span>Preço unitário (R$)</span>
+            <input type="number" id="f-preco" min="0" step="0.01" placeholder="0,00" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="field">
+            <span>Validade</span>
+            <input type="date" id="f-validade" />
+          </label>
+          <label class="field span-2">
+            <span>Observações</span>
+            <input type="text" id="f-obs" placeholder="Uso, local de armazenamento, etc." />
+          </label>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="medFormCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar medicamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: movimentar estoque -->
+  <div class="modal-backdrop" id="moveModal" hidden>
+    <div class="modal modal-sm" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <h2 id="moveModalTitle">Movimentar estoque</h2>
+        <button class="icon-btn" id="moveModalClose" aria-label="Fechar">✕</button>
+      </div>
+      <form id="moveForm" class="modal-body">
+        <input type="hidden" id="m-id" />
+        <p class="move-med" id="moveMedName"></p>
+        <div class="seg" id="moveTipo">
+          <button type="button" class="seg-btn active" data-tipo="entrada">＋ Entrada</button>
+          <button type="button" class="seg-btn" data-tipo="saida">－ Saída</button>
+        </div>
+        <div class="form-row">
+          <label class="field">
+            <span>Quantidade *</span>
+            <input type="number" id="m-qtd" min="1" step="1" required placeholder="0" />
+          </label>
+          <label class="field">
+            <span>Responsável / Motivo</span>
+            <input type="text" id="m-motivo" placeholder="Ex.: Dr. Ana — aplicação" />
+          </label>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="moveFormCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
