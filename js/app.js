@@ -470,7 +470,7 @@ function doLogin(e) {
   if (u === LOGIN_USUARIO && s === LOGIN_SENHA) {
     sessionStorage.setItem(AUTH_KEY, '1');
     enterApp();
-    toast('Bem-vindo(a) ao Hospital Med Vet!');
+    toast('Bem-vindo(a) ao Medical Vet!');
   } else {
     $('#loginErr').hidden = false;
     $('#l-pass').value = '';
