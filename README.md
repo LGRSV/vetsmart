@@ -1,6 +1,6 @@
-# 🐾 Hospital Med Vet — Controle de Medicamentos
+# 🐾 Medical Vet — Controle de Medicamentos
 
-Sistema web para **controle de medicamentos do Hospital Med Vet**, com visual
+Sistema web para **controle de medicamentos do Medical Vet**, com visual
 verde vibrante, layout clean estilo SaaS e cantos arredondados.
 
 ## 🔐 Acesso
