@@ -74,7 +74,7 @@ h2 { font-size: 16px; font-weight: 800; color: var(--ink); }
   box-shadow: 0 6px 14px rgba(18, 178, 106, .3);
 }
 .brand-name { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
-.brand-name strong { color: var(--green-600); }
+.brand-name strong { color: var(--blue); }
 
 .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .nav-item {
@@ -321,7 +321,7 @@ tr:hover .row-actions { opacity: 1; }
 }
 .login-brand { display: flex; align-items: center; gap: 10px; justify-content: center; }
 .login-brand .brand-name { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
-.login-brand .brand-name strong { color: var(--green-600); }
+.login-brand .brand-name strong { color: var(--blue); }
 .login-sub { text-align: center; color: var(--muted); font-size: 13.5px; margin-bottom: 8px; }
 .login-card .field { gap: 6px; }
 .login-btn { justify-content: center; padding: 12px; margin-top: 6px; font-size: 15px; }
