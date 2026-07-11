@@ -244,6 +244,11 @@
                   <span>Quem retirou</span>
                   <input type="text" id="rep-quem" placeholder="Todos" />
                 </label>
+                <label class="field">
+                  <span>ID paciente</span>
+                  <input list="rep-pac-list" id="rep-paciente" placeholder="Todos" />
+                  <datalist id="rep-pac-list"></datalist>
+                </label>
               </div>
               <div class="report-actions">
                 <button type="button" class="btn btn-primary" id="btnGerarRelatorio">Gerar relatório</button>
@@ -253,12 +258,37 @@
             </div>
           </div>
 
+          <div class="grid-2">
+            <div class="card" id="repPacienteCard" hidden>
+              <div class="card-head"><h2>Custo por paciente</h2></div>
+              <div class="card-body no-pad">
+                <div class="table-wrap">
+                  <table class="table" id="repPacienteTable">
+                    <thead><tr><th>Paciente</th><th class="num">Itens</th><th class="num">Custo (R$)</th></tr></thead>
+                    <tbody id="repPacienteTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="card" id="repFinalidadeCard" hidden>
+              <div class="card-head"><h2>Custo por finalidade</h2></div>
+              <div class="card-body no-pad">
+                <div class="table-wrap">
+                  <table class="table" id="repFinalidadeTable">
+                    <thead><tr><th>Finalidade</th><th class="num">Itens</th><th class="num">Custo (R$)</th></tr></thead>
+                    <tbody id="repFinalidadeTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="card" id="repSummaryCard" hidden>
             <div class="card-head"><h2>Resumo por produto</h2></div>
             <div class="card-body no-pad">
               <div class="table-wrap">
                 <table class="table" id="repSummaryTable">
-                  <thead><tr><th>Produto</th><th class="num">Total saído</th><th>Unidade</th><th class="num">Nº de saídas</th></tr></thead>
+                  <thead><tr><th>Produto</th><th class="num">Total saído</th><th>Unidade</th><th class="num">Nº de saídas</th><th class="num">Custo (R$)</th></tr></thead>
                   <tbody id="repSummaryTbody"></tbody>
                 </table>
               </div>
@@ -270,7 +300,7 @@
             <div class="table-wrap">
               <table class="table" id="repDetailTable">
                 <thead>
-                  <tr><th>Data</th><th>Produto</th><th class="num">Qtd.</th><th>Paciente</th><th>Quem retirou</th><th>Finalidade</th><th>Obs.</th></tr>
+                  <tr><th>Data</th><th>Produto</th><th class="num">Qtd.</th><th class="num">Preço un.</th><th class="num">Subtotal</th><th>Paciente</th><th>Quem retirou</th><th>Finalidade</th><th>Obs.</th></tr>
                 </thead>
                 <tbody id="repDetailTbody"></tbody>
               </table>

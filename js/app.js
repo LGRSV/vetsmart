@@ -812,7 +812,7 @@ function submitMove(e) {
   m.quantidade = Math.round((m.quantidade + (moveTipo === 'entrada' ? qtd : -qtd)) * 100) / 100;
   moves.push({
     id: uid(), medId: m.id, medNome: m.nome, tipo: moveTipo, qtd, unidade: un, motivo,
-    idPaciente, quemRetirou, finalidade, data: new Date().toISOString(),
+    preco: Number(m.preco) || 0, idPaciente, quemRetirou, finalidade, data: new Date().toISOString(),
   });
   save();
   hideModal('#moveModal');
@@ -823,11 +823,19 @@ function submitMove(e) {
 /* ---------- Relatórios ---------- */
 let ultimoRelatorio = [];
 
+function custoMov(mv) {
+  return (Number(mv.qtd) || 0) * (Number(mv.preco) || 0);
+}
+
 function gerarRelatorio() {
   const inicio = $('#rep-inicio').value;
   const fim = $('#rep-fim').value;
   const produto = $('#rep-produto').value.trim().toLowerCase();
   const quem = $('#rep-quem').value.trim().toLowerCase();
+  const paciente = $('#rep-paciente').value.trim().toLowerCase();
+
+  const pacientes = [...new Set(moves.filter((mv) => mv.tipo === 'saida').map((mv) => mv.idPaciente).filter(Boolean))].sort();
+  $('#rep-pac-list').innerHTML = pacientes.map((p) => `<option value="${esc(p)}">`).join('');
 
   const rows = moves.filter((mv) => {
     if (mv.tipo !== 'saida') return false;
@@ -836,23 +844,43 @@ function gerarRelatorio() {
     if (fim && dataISO > fim) return false;
     if (produto && !mv.medNome.toLowerCase().includes(produto)) return false;
     if (quem && !(mv.quemRetirou || '').toLowerCase().includes(quem)) return false;
+    if (paciente && !(mv.idPaciente || '').toLowerCase().includes(paciente)) return false;
     return true;
   }).sort((a, b) => a.data < b.data ? 1 : -1);
 
   ultimoRelatorio = rows;
 
-  $('#repSummaryCard').hidden = rows.length === 0;
-  $('#repDetailCard').hidden = rows.length === 0;
-  $('#repEmpty').hidden = rows.length > 0;
-  if (!rows.length) return;
+  const temDados = rows.length > 0;
+  $('#repSummaryCard').hidden = !temDados;
+  $('#repDetailCard').hidden = !temDados;
+  $('#repPacienteCard').hidden = !temDados;
+  $('#repFinalidadeCard').hidden = !temDados;
+  $('#repEmpty').hidden = temDados;
+  if (!temDados) return;
 
   const porProduto = {};
+  const porPaciente = {};
+  const porFinalidade = {};
   rows.forEach((mv) => {
-    const k = mv.medNome;
-    if (!porProduto[k]) porProduto[k] = { total: 0, unidade: mv.unidade || 'un', n: 0 };
-    porProduto[k].total += Number(mv.qtd) || 0;
-    porProduto[k].n += 1;
+    const custo = custoMov(mv);
+
+    const kp = mv.medNome;
+    if (!porProduto[kp]) porProduto[kp] = { total: 0, unidade: mv.unidade || 'un', n: 0, custo: 0 };
+    porProduto[kp].total += Number(mv.qtd) || 0;
+    porProduto[kp].n += 1;
+    porProduto[kp].custo += custo;
+
+    const kpac = mv.idPaciente || '(não informado)';
+    if (!porPaciente[kpac]) porPaciente[kpac] = { n: 0, custo: 0 };
+    porPaciente[kpac].n += 1;
+    porPaciente[kpac].custo += custo;
+
+    const kf = mv.finalidade || '(não informado)';
+    if (!porFinalidade[kf]) porFinalidade[kf] = { n: 0, custo: 0 };
+    porFinalidade[kf].n += 1;
+    porFinalidade[kf].custo += custo;
   });
+
   const resumoEntries = Object.entries(porProduto).sort((a, b) => b[1].total - a[1].total);
   $('#repSummaryTbody').innerHTML = resumoEntries.map(([nome, r]) => `
     <tr>
@@ -860,6 +888,23 @@ function gerarRelatorio() {
       <td class="num">${r.total}</td>
       <td>${esc(r.unidade)}</td>
       <td class="num">${r.n}</td>
+      <td class="num">${brl(r.custo)}</td>
+    </tr>`).join('');
+
+  const pacienteEntries = Object.entries(porPaciente).sort((a, b) => b[1].custo - a[1].custo);
+  $('#repPacienteTbody').innerHTML = pacienteEntries.map(([nome, r]) => `
+    <tr>
+      <td><strong>${esc(nome)}</strong></td>
+      <td class="num">${r.n}</td>
+      <td class="num">${brl(r.custo)}</td>
+    </tr>`).join('');
+
+  const finalidadeEntries = Object.entries(porFinalidade).sort((a, b) => b[1].custo - a[1].custo);
+  $('#repFinalidadeTbody').innerHTML = finalidadeEntries.map(([nome, r]) => `
+    <tr>
+      <td><strong>${esc(nome)}</strong></td>
+      <td class="num">${r.n}</td>
+      <td class="num">${brl(r.custo)}</td>
     </tr>`).join('');
 
   $('#repDetailTbody').innerHTML = rows.map((mv) => `
@@ -867,6 +912,8 @@ function gerarRelatorio() {
       <td style="color:var(--muted);white-space:nowrap">${fmtDateTime(mv.data)}</td>
       <td><strong>${esc(mv.medNome)}</strong></td>
       <td class="num">${mv.qtd} ${esc(mv.unidade || 'un')}</td>
+      <td class="num">${brl(mv.preco)}</td>
+      <td class="num">${brl(custoMov(mv))}</td>
       <td>${esc(mv.idPaciente || '—')}</td>
       <td>${esc(mv.quemRetirou || '—')}</td>
       <td>${esc(mv.finalidade || '—')}</td>
@@ -882,12 +929,14 @@ function csvField(v) {
 function exportarRelatorioCSV() {
   if (!ultimoRelatorio.length) gerarRelatorio();
   if (!ultimoRelatorio.length) { toast('Nenhuma saída para exportar.', true); return; }
-  const header = ['Data', 'Hora', 'Produto', 'Quantidade', 'Unidade', 'ID paciente', 'Quem retirou', 'Finalidade', 'Observação'];
+  const header = ['Data', 'Hora', 'Produto', 'Quantidade', 'Unidade', 'Preço unitário', 'Subtotal', 'ID paciente', 'Quem retirou', 'Finalidade', 'Observação'];
   const linhas = ultimoRelatorio.map((mv) => {
     const d = new Date(mv.data);
     return [
       d.toLocaleDateString('pt-BR'), d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      mv.medNome, String(mv.qtd).replace('.', ','), mv.unidade || 'un', mv.idPaciente || '', mv.quemRetirou || '', mv.finalidade || '', mv.motivo || '',
+      mv.medNome, String(mv.qtd).replace('.', ','), mv.unidade || 'un',
+      String((Number(mv.preco) || 0).toFixed(2)).replace('.', ','), String(custoMov(mv).toFixed(2)).replace('.', ','),
+      mv.idPaciente || '', mv.quemRetirou || '', mv.finalidade || '', mv.motivo || '',
     ].map(csvField).join(';');
   });
   const csv = '﻿' + header.join(';') + '\n' + linhas.join('\n');
