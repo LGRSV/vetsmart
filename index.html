@@ -54,6 +54,9 @@
           <span class="nav-ico">🔔</span> Alertas
           <span class="nav-badge" id="navAlertBadge" hidden>0</span>
         </button>
+        <button class="nav-item" data-view="relatorios">
+          <span class="nav-ico">📄</span> Relatórios
+        </button>
       </nav>
       <div class="sidebar-foot">
         <div class="user-card">
@@ -211,6 +214,104 @@
           </div>
           <div id="alertsContainer"></div>
         </section>
+
+        <!-- RELATÓRIOS -->
+        <section class="view" id="view-relatorios" hidden>
+          <div class="view-head">
+            <div>
+              <h1>Relatórios</h1>
+              <p class="muted">Resumo de saídas por período — para conferência e prestação de contas.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div class="report-filters">
+                <label class="field">
+                  <span>Data inicial</span>
+                  <input type="date" id="rep-inicio" />
+                </label>
+                <label class="field">
+                  <span>Data final</span>
+                  <input type="date" id="rep-fim" />
+                </label>
+                <label class="field">
+                  <span>Produto</span>
+                  <input list="rep-prod-list" id="rep-produto" placeholder="Todos os produtos" />
+                  <datalist id="rep-prod-list"></datalist>
+                </label>
+                <label class="field">
+                  <span>Quem retirou</span>
+                  <input type="text" id="rep-quem" placeholder="Todos" />
+                </label>
+                <label class="field">
+                  <span>ID paciente</span>
+                  <input list="rep-pac-list" id="rep-paciente" placeholder="Todos" />
+                  <datalist id="rep-pac-list"></datalist>
+                </label>
+              </div>
+              <div class="report-actions">
+                <button type="button" class="btn btn-primary" id="btnGerarRelatorio">Gerar relatório</button>
+                <button type="button" class="btn btn-ghost" id="btnExportarRelatorioCSV">⬇ Exportar CSV</button>
+                <button type="button" class="btn btn-ghost" id="btnImprimirRelatorio">🖨 Imprimir</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card" id="repPacienteCard" hidden>
+              <div class="card-head"><h2>Custo por paciente</h2></div>
+              <div class="card-body no-pad">
+                <div class="table-wrap">
+                  <table class="table" id="repPacienteTable">
+                    <thead><tr><th>Paciente</th><th class="num">Itens</th><th class="num">Custo (R$)</th></tr></thead>
+                    <tbody id="repPacienteTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="card" id="repFinalidadeCard" hidden>
+              <div class="card-head"><h2>Custo por finalidade</h2></div>
+              <div class="card-body no-pad">
+                <div class="table-wrap">
+                  <table class="table" id="repFinalidadeTable">
+                    <thead><tr><th>Finalidade</th><th class="num">Itens</th><th class="num">Custo (R$)</th></tr></thead>
+                    <tbody id="repFinalidadeTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="repSummaryCard" hidden>
+            <div class="card-head"><h2>Resumo por produto</h2></div>
+            <div class="card-body no-pad">
+              <div class="table-wrap">
+                <table class="table" id="repSummaryTable">
+                  <thead><tr><th>Produto</th><th class="num">Total saído</th><th>Unidade</th><th class="num">Nº de saídas</th><th class="num">Custo (R$)</th></tr></thead>
+                  <tbody id="repSummaryTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card no-pad" id="repDetailCard" hidden>
+            <div class="card-head"><h2>Detalhamento</h2></div>
+            <div class="table-wrap">
+              <table class="table" id="repDetailTable">
+                <thead>
+                  <tr><th>Data</th><th>Produto</th><th class="num">Qtd.</th><th class="num">Preço un.</th><th class="num">Subtotal</th><th>Paciente</th><th>Quem retirou</th><th>Finalidade</th><th>Obs.</th></tr>
+                </thead>
+                <tbody id="repDetailTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="empty" id="repEmpty" hidden>
+            <div class="empty-emoji">📄</div>
+            <p>Nenhuma saída encontrada para o filtro selecionado. Clique em "Gerar relatório".</p>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -251,12 +352,12 @@
         </div>
         <div class="form-row">
           <label class="field">
-            <span>Quantidade *</span>
-            <input type="number" id="f-quantidade" min="0" step="1" required placeholder="0" />
+            <span>Quantidade em estoque * <small>(na unidade de uso)</small></span>
+            <input type="number" id="f-quantidade" min="0" step="0.01" required placeholder="0" />
           </label>
           <label class="field">
             <span>Estoque mínimo</span>
-            <input type="number" id="f-minimo" min="0" step="1" placeholder="10" />
+            <input type="number" id="f-minimo" min="0" step="0.01" placeholder="10" />
           </label>
           <label class="field">
             <span>Preço unitário (R$)</span>
@@ -265,12 +366,31 @@
         </div>
         <div class="form-row">
           <label class="field">
+            <span>Unidade de uso (saída)</span>
+            <input type="text" id="f-unidadeUso" placeholder="Ex.: ml, mg, comprimido" />
+          </label>
+          <label class="field">
+            <span>Unidade de compra</span>
+            <input type="text" id="f-unidadeCompra" placeholder="Ex.: Frasco, Caixa" />
+          </label>
+          <label class="field">
+            <span>Qtd. da unidade de uso por embalagem</span>
+            <input type="number" id="f-qtdPorCompra" min="0.01" step="0.01" placeholder="Ex.: 20" />
+          </label>
+        </div>
+        <p class="field-hint">Ex.: compra 1 <strong>Frasco</strong> com <strong>20</strong> ml, mas a saída é registrada em <strong>ml</strong> (podendo ser fracionada, como 0,5 ml).</p>
+        <div class="form-row">
+          <label class="field">
             <span>Validade</span>
             <input type="date" id="f-validade" />
           </label>
-          <label class="field span-2">
+          <label class="field">
             <span>Observações</span>
             <input type="text" id="f-obs" placeholder="Uso, local de armazenamento, etc." />
+          </label>
+          <label class="field field-check">
+            <input type="checkbox" id="f-controlado" />
+            <span>Medicamento controlado</span>
           </label>
         </div>
         <div class="modal-foot">
@@ -295,16 +415,41 @@
           <button type="button" class="seg-btn active" data-tipo="entrada">＋ Entrada</button>
           <button type="button" class="seg-btn" data-tipo="saida">－ Saída</button>
         </div>
-        <div class="form-row">
-          <label class="field">
-            <span>Quantidade *</span>
-            <input type="number" id="m-qtd" min="1" step="1" required placeholder="0" />
-          </label>
-          <label class="field">
-            <span>Responsável / Motivo</span>
-            <input type="text" id="m-motivo" placeholder="Ex.: Dr. Ana — aplicação" />
+
+        <div class="form-row" id="moveEmbalagemRow" hidden>
+          <label class="field span-2">
+            <span id="moveEmbalagemLabel">Comprou quantas embalagens?</span>
+            <input type="number" id="m-embalagens" min="0" step="0.01" placeholder="Ex.: 1" />
           </label>
         </div>
+
+        <div class="form-row">
+          <label class="field">
+            <span id="moveQtdLabel">Quantidade *</span>
+            <input type="number" id="m-qtd" min="0.01" step="0.01" required placeholder="0" />
+          </label>
+          <label class="field">
+            <span>Observação</span>
+            <input type="text" id="m-motivo" placeholder="Ex.: aplicação em atendimento" />
+          </label>
+        </div>
+
+        <div class="form-row" id="moveSaidaRow" hidden>
+          <label class="field">
+            <span>ID paciente *</span>
+            <input type="text" id="m-paciente" placeholder='Prontuário ou "USO INTERNO"' />
+          </label>
+          <label class="field">
+            <span>Quem retirou</span>
+            <input type="text" id="m-quem" placeholder="Ex.: Felipe" />
+          </label>
+          <label class="field">
+            <span>Finalidade</span>
+            <input type="text" id="m-finalidade" placeholder="Ex.: Atendimento clínico" />
+          </label>
+        </div>
+        <div class="box-note" id="moveControladoNote" hidden>⚠ Item controlado — paciente e finalidade são obrigatórios.</div>
+
         <div class="modal-foot">
           <button type="button" class="btn btn-ghost" id="moveFormCancel">Cancelar</button>
           <button type="submit" class="btn btn-primary">Registrar</button>
