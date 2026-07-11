@@ -3,8 +3,8 @@
    Persistência em localStorage. Sem dependências externas.
    ============================================================ */
 
-const STORAGE_KEY = 'vetsmart:meds:v1';
-const MOVES_KEY = 'vetsmart:moves:v1';
+const STORAGE_KEY = 'vetsmart:meds:v2';
+const MOVES_KEY = 'vetsmart:moves:v2';
 const AUTH_KEY = 'vetsmart:auth:v1';
 
 /* ---------- Credenciais de acesso ----------
