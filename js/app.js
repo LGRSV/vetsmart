@@ -820,6 +820,95 @@ function submitMove(e) {
   toast(moveTipo === 'entrada' ? `Entrada de ${qtd} ${un} registrada.` : `Saída de ${qtd} ${un} registrada.`);
 }
 
+/* ---------- Saída rápida ----------
+   Fluxo enxuto para o dia a dia: buscar o item, informar a quantidade na
+   unidade certa (ml, unidade...), quem retirou e o ID do paciente.
+   O modal continua aberto após registrar, mantendo quem/paciente/finalidade
+   preenchidos para puxar vários itens do mesmo atendimento em sequência. */
+const LAST_QUEM_KEY = 'vetsmart:lastquem:v1';
+const FINALIDADES_PADRAO = ['Atendimento clínico', 'Cirurgia', 'Internação', 'Exames', 'Emergência', 'Uso interno'];
+
+function quickMed() {
+  const nome = $('#q-produto').value.trim().toLowerCase();
+  return meds.find((m) => m.nome.toLowerCase() === nome) || null;
+}
+
+function refreshQuickLists() {
+  $('#quick-prod-list').innerHTML = meds.map((m) => `<option value="${esc(m.nome)}">`).join('');
+  const saidas = moves.filter((mv) => mv.tipo === 'saida');
+  const quens = [...new Set(saidas.map((mv) => mv.quemRetirou).filter(Boolean))].sort();
+  $('#quick-quem-list').innerHTML = quens.map((q) => `<option value="${esc(q)}">`).join('');
+  const pacientes = [...new Set(saidas.map((mv) => mv.idPaciente).filter(Boolean))].sort();
+  $('#quick-pac-list').innerHTML = pacientes.map((p) => `<option value="${esc(p)}">`).join('');
+  const fins = [...new Set([...FINALIDADES_PADRAO, ...saidas.map((mv) => mv.finalidade).filter(Boolean)])];
+  $('#quick-fin-list').innerHTML = fins.map((f) => `<option value="${esc(f)}">`).join('');
+}
+
+function updateQuickInfo() {
+  const m = quickMed();
+  if (!m) {
+    $('#quickQtdLabel').textContent = 'Quantidade *';
+    $('#quickStock').hidden = true;
+    $('#quickControladoNote').hidden = true;
+    return;
+  }
+  const un = m.unidadeUso || 'un';
+  $('#quickQtdLabel').textContent = `Quantidade (${un}) *`;
+  const st = $('#quickStock');
+  st.hidden = false;
+  st.textContent = `Em estoque: ${m.quantidade} ${un}`;
+  st.className = 'quick-stock' + (m.quantidade <= (m.minimo || 0) ? ' warn' : '');
+  $('#quickControladoNote').hidden = !m.controlado;
+}
+
+function openQuick() {
+  refreshQuickLists();
+  $('#quickForm').reset();
+  $('#q-quem').value = localStorage.getItem(LAST_QUEM_KEY) || '';
+  updateQuickInfo();
+  showModal('#quickModal');
+  setTimeout(() => $('#q-produto').focus(), 50);
+}
+
+function submitQuick(e) {
+  e.preventDefault();
+  const m = quickMed();
+  if (!m) {
+    toast('Item não encontrado — escolha um da lista.', true);
+    $('#q-produto').focus();
+    return;
+  }
+  const un = m.unidadeUso || 'un';
+  const qtd = Math.max(0.01, parseFloat($('#q-qtd').value) || 0);
+  const quemRetirou = $('#q-quem').value.trim();
+  const idPaciente = $('#q-paciente').value.trim();
+  const finalidade = $('#q-finalidade').value.trim();
+
+  if (m.controlado && (!idPaciente || !finalidade)) {
+    toast('Item controlado: informe paciente e finalidade.', true);
+    return;
+  }
+  if (qtd > m.quantidade) {
+    toast(`Saída maior que o estoque (${m.quantidade} ${un}).`, true);
+    return;
+  }
+  m.quantidade = Math.round((m.quantidade - qtd) * 100) / 100;
+  moves.push({
+    id: uid(), medId: m.id, medNome: m.nome, tipo: 'saida', qtd, unidade: un, motivo: '',
+    preco: Number(m.preco) || 0, idPaciente, quemRetirou, finalidade, data: new Date().toISOString(),
+  });
+  localStorage.setItem(LAST_QUEM_KEY, quemRetirou);
+  save();
+  renderAll();
+  toast(`Saída de ${qtd} ${un} de ${m.nome} registrada.`);
+  // mantém quem/paciente/finalidade para o próximo item do mesmo atendimento
+  $('#q-produto').value = '';
+  $('#q-qtd').value = '';
+  refreshQuickLists();
+  updateQuickInfo();
+  $('#q-produto').focus();
+}
+
 /* ---------- Relatórios ---------- */
 let ultimoRelatorio = [];
 
@@ -1073,6 +1162,15 @@ function init() {
   $('#btnGerarRelatorio').addEventListener('click', gerarRelatorio);
   $('#btnExportarRelatorioCSV').addEventListener('click', exportarRelatorioCSV);
   $('#btnImprimirRelatorio').addEventListener('click', imprimirRelatorio);
+
+  // Saída rápida
+  $('#btnSaidaRapida').addEventListener('click', openQuick);
+  $('#fabSaidaRapida').addEventListener('click', openQuick);
+  $('#quickForm').addEventListener('submit', submitQuick);
+  $('#quickModalClose').addEventListener('click', () => hideModal('#quickModal'));
+  $('#quickFormCancel').addEventListener('click', () => hideModal('#quickModal'));
+  $('#q-produto').addEventListener('input', updateQuickInfo);
+  $('#q-produto').addEventListener('change', updateQuickInfo);
 
   // Fechar modal ao clicar no backdrop / ESC
   $$('.modal-backdrop').forEach((bd) => bd.addEventListener('click', (e) => { if (e.target === bd) bd.hidden = true; }));
